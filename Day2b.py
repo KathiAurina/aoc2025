@@ -17,7 +17,7 @@ for r in split_ranges(test_input):
     end = r[1]
     for i in range(start, end + 1):
         str_i = str(i)
-        for idx in range(1, len(str_i)//2):
+        for idx in range(1, len(str_i)//2+1):
             rep = str_i[:idx]
             isSequence = True
             for j in range(len(str_i)//idx):
