@@ -12,7 +12,7 @@ def split_ranges(input_string):
     return range_list
 
 sum = 0
-for r in split_ranges(test_input):
+for r in split_ranges(input):
     start = r[0]
     end = r[1]
     for i in range(start, end + 1):
@@ -21,9 +21,10 @@ for r in split_ranges(test_input):
             rep = str_i[:idx]
             isSequence = True
             for j in range(len(str_i)//idx):
-                if str_i[j*idx:(j+1)*idx] != rep:
+                if str_i[j*idx:(j+1)*idx] != rep or len(str_i) % idx != 0 or len(rep) == len(str_i):
                     isSequence = False
             if isSequence:
                 sum += i
+                break
 
 print(sum)
