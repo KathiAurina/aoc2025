@@ -1,43 +1,51 @@
+import numpy as np
 
 
-def count_at_chars(window):
-    count = 0
-    for c in window:
-        if c == '@':
-            count += 1
-    return count
+def input_to_matrix(input_txt, rows, cols):
+    matrix = np.zeros((rows, cols))
+    with open(input_txt, "r") as file:
+        lines = file.readlines()
+        current_line_idx = 0
+        for line in lines:
+            for i in range(len(line.strip())):
+                if line[i] == '@':
+                   matrix[current_line_idx][i] = 1
+            current_line_idx += 1
 
-def find_num_for_line(line, half_window_size):
-    num = 0
-    line = line.strip('\n')
-    for idx, ch in enumerate(line):
-        if ch == '@':
-            neighbors = 0
-            if idx - half_window_size <= 0:
-                neighbors += count_at_chars(line[0:idx])
-            else:
-                neighbors += count_at_chars(line[idx - half_window_size:idx])
-            if idx + half_window_size >= len(line) - 1:
-                neighbors += count_at_chars(line[idx + 1:])
-            else:
-                neighbors += count_at_chars(line[idx + 1:idx + half_window_size])
+    return matrix
 
-            if neighbors < 4:
-                num += 1
+def find_neighbors(matrix, i, j, rows, cols):
 
-    return num
+    start_row = max(0, i - 1)
+    start_col = max(0, j - 1)
+    end_row = min(rows, i + 2)
+    end_col = min(cols, j + 2)
+
+    if matrix[i][j] == 1:
+        neighbors = []
+        for k in range(start_row, end_row):
+            for l in range(start_col, end_col):
+                neighbors.append(matrix[k][l])
+        return neighbors #todo remember that matrix[i][j] is also 1 and included in neighbors
+    else:
+        return []
+
+def get_neighbor_count(neighbors):
+    count = np.sum(neighbors)
+    return count - 1 #because matrix[i][j]=1 and is included in neighbors
+
+NUM_ROWS = 136
+NUM_COLS = 136
+matrix = input_to_matrix("input.txt", NUM_ROWS, NUM_COLS)
+accessible_scrolls = 0
+for i in range(10):
+    for j in range(10):
+        neighbors = find_neighbors(matrix, i, j, NUM_ROWS, NUM_COLS)
+        if len(neighbors) > 0:
+            count = get_neighbor_count(neighbors)
+            if count < 4:
+                accessible_scrolls += 1
+
+print(accessible_scrolls)
 
 
-
-
-
-
-sum_rolls = 0
-with open("test_input.txt", "r") as file:
-    lines = file.readlines()
-    for line in lines:
-        sum_rolls += find_num_for_line(line, 4)
-
-print(sum_rolls)
-
-#TODO alles falsch, wir müssen auch die drüber und drunter beachten -> Matix bilden
