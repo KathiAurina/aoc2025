@@ -1,65 +1,93 @@
-#! usr/bin/env python3 
+ 
 from tqdm import tqdm
 
 
 included_ranges = []
 
-
-def add_range(start, end):
-    included_ranges.append([start, end])
-    check_ranges_list()
-
-def check_ranges_list():
+def check(start, end):
+    global included_ranges
+    
     for i in range(len(included_ranges)):
-        start = included_ranges[i][0]
-        end = included_ranges[i][1]
-        for j in range(len(included_ranges)):
-            if i == j:
-                continue
-            compared_range = included_ranges[j]
-            if (start < compared_range[0] and end < compared_range[0]) or start > compared_range[1]:
+        start_incl = included_ranges[i][0]
+        end_incl = included_ranges[i][1]
+
+        if not ((start_incl < start and end_incl < start) or start_incl > end):
+                return False
+
+    return True
+
+
+def check_one_range(start, end, range_to_be_checked_against):
+    start_r = range_to_be_checked_against[0]
+    end_r = range_to_be_checked_against[1]
+        
+    if not ((start_r < start and end_r < start) or start_r > end):
+        return False
+
+    return True
+        
+def check_all_ranges():
+    global included_ranges
+
+    for i in range(len(included_ranges) - 1):
+        first_range = included_ranges[i]
+        for j in range(i, len(included_ranges)):
+            second_range = included_ranges[i + 1]
+            if check_one_range(first_range[0], first_range[1], second_range):
                 continue
             else:
-                included_ranges[j] = fit_new_range(start, end, compared_range)
+                # TODO hier noch endlosschleife verhindern
+                fit_new_range(first_range[0], first_range[1])            
+                
 
+                        
+        
+def fit_new_range(start, end):
+    global included_ranges
+    
+    for i in range(len(included_ranges)):
+        start_incl = included_ranges[i][0]
+        end_incl = included_ranges[i][1]
+        
+        if check_one_range(start, end, (start_incl, end_incl)):
+            continue
+        
+        else:
+            print("finding problematic range")        
+            if start > start_incl and end < end_incl:
+                print("if")
+                fitted_range = (start_incl, end_incl)
+
+            elif start > start_incl and end > end_incl:
+                print("elif1")
+                fitted_range = (start_incl, end)
+
+            elif start < start_incl and end < end_incl:
+                print("elif2")
+                fitted_range = (start, end_incl)
+
+            else:
+                print("else")
+                fitted_range = (start, end)
+
+            included_ranges[i] = fitted_range
+
+            check_all_ranges()
+            #remove_similar_ranges()
             
-def fit_new_range(start, end, new_range):
-    new_start = new_range[0]
-    new_end = new_range[1]
-    fitted_range = [0, 0]
-    
-    if start > new_start and end < new_end:
-        fitted_range = new_range
 
-    elif start > new_start and end > new_end:
-        fitted_range[0] = new_start
-        fitted_range[1] = end
-
-    elif start < new_start and end < new_end:
-        fitted_range[0] = start
-        fitted_range[1] = new_end
-
-    else:
-        fitted_range[0] = start
-        fitted_range[1] = end
-
-    if fitted_range == [0, 0]:
-        print("WARNING: fitted_range maybe was not modified!")
-
-    check_ranges_list()
-    
-    return fitted_range
-
-
-with open("input_fresh.txt", "r") as file:
+with open("test_input_fresh.txt", "r") as file:
     lines = file.readlines()
     for line in tqdm(lines):
         myrange = line.split("-");
         start = int(myrange[0])
         end = int(myrange[1])
-
-        add_range(start, end)
-
+        if check(start, end):
+            included_ranges.append((start, end))
+        else:
+            print(f"found unfitting range ({start}, {end})")
+            fit_new_range(start, end)
+            
 print(included_ranges)        
 num_fresh = 0    
 for r in included_ranges:
