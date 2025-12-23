@@ -40,43 +40,50 @@ def check_all_ranges():
                 fit_new_range(first_range[0], first_range[1])            
                 
 
+def remove_similar_ranges():
+    for i, rg in enumerate(included_ranges):
+        start = rg[0]
+        end = rg[1]
+        for j in range(i, len(included_ranges)):
+            if i == j:
+                continue
+            elif included_ranges[j][0] == start and included_ranges[j][1] == end:
+                included_ranges.remove(included_ranges[j])
                         
         
 def fit_new_range(start, end):
     global included_ranges
-    
+    problematic_ranges = []
+       
     for i in range(len(included_ranges)):
         start_incl = included_ranges[i][0]
         end_incl = included_ranges[i][1]
         
         if check_one_range(start, end, (start_incl, end_incl)):
             continue
-        
+    
         else:
-            print("finding problematic range")        
-            if start > start_incl and end < end_incl:
-                print("if")
-                fitted_range = (start_incl, end_incl)
+            problematic_ranges.append((start_incl, end_incl))
 
-            elif start > start_incl and end > end_incl:
-                print("elif1")
-                fitted_range = (start_incl, end)
+    fitted_start = start
+    fitted_end = end
+   
+    for rg in problematic_ranges:
+        start_rg = rg[0]
+        end_rg = rg[1]
 
-            elif start < start_incl and end < end_incl:
-                print("elif2")
-                fitted_range = (start, end_incl)
+        if fitted_start > start_rg:
+            fitted_start = start_rg
+            
+        if fitted_end < end_rg:
+            fitted_end = end_rg
 
-            else:
-                print("else")
-                fitted_range = (start, end)
-
-            included_ranges[i] = fitted_range
-
-            check_all_ranges()
-            #remove_similar_ranges()
+        included_ranges.remove(rg)
+        
+    included_ranges.append((fitted_start, fitted_end))
             
 
-with open("test_input_fresh.txt", "r") as file:
+with open("input_fresh.txt", "r") as file:
     lines = file.readlines()
     for line in tqdm(lines):
         myrange = line.split("-");
@@ -85,10 +92,11 @@ with open("test_input_fresh.txt", "r") as file:
         if check(start, end):
             included_ranges.append((start, end))
         else:
-            print(f"found unfitting range ({start}, {end})")
             fit_new_range(start, end)
+            check_all_ranges()
+            remove_similar_ranges()
             
-print(included_ranges)        
+#print(included_ranges)        
 num_fresh = 0    
 for r in included_ranges:
     num_fresh += r[1] - r[0] + 1
